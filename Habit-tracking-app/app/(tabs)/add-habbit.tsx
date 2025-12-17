@@ -30,12 +30,13 @@ export default function AddHabbitScreen() {
         frequency,
         user_id: user.$id,
         streak_count: 0,
-        last_completed: new Date().toISOString(),
+        last_completed: "",
         // created_at: new Date().toISOString(),
 
       }
     );
-      router.back();
+      // navigate back to root and replace so index re-fetches
+      router.replace("/");
     } catch (err) {
   console.log("Appwrite error:", err);
   if (err instanceof Error) {
@@ -48,24 +49,26 @@ export default function AddHabbitScreen() {
   
 };
     return (
-      <View style={styles.container}>
-        <Text style={styles.title} >Add New Habit</Text>
-        <TextInput label="Title" mode="outlined" style={styles.input} value={title} onChangeText={setTitle} />
-        <TextInput label="Description" mode="outlined" style={styles.input} value={description} onChangeText={setDescription} />
-        <View style={styles.frequencyContainer}>
-          <SegmentedButtons
-            value={frequency}
-            onValueChange={(value) => setFrequency(value as Frequency)}
-            buttons={FREQUENCIES.map((freq) => ({
-              value: freq,
-              label: freq.charAt(0).toUpperCase() + freq.slice(1),
-            }))}
-          />
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.form}>
+          <Text style={[styles.title, { color: theme.colors.onBackground }]}>Add New Habit</Text>
+          <TextInput label="Title" mode="outlined" style={styles.input} value={title} onChangeText={setTitle} />
+          <TextInput label="Description" mode="outlined" style={styles.input} value={description} onChangeText={setDescription} />
+          <View style={styles.frequencyContainer}>
+            <SegmentedButtons
+              value={frequency}
+              onValueChange={(value) => setFrequency(value as Frequency)}
+              buttons={FREQUENCIES.map((freq) => ({
+                value: freq,
+                label: freq.charAt(0).toUpperCase() + freq.slice(1),
+              }))}
+            />
+          </View>
+          <Button mode="contained" style={styles.button} buttonColor={theme.colors.primary} disabled={!title || !description} onPress={handleSubmit}>
+            Add Habit
+          </Button>
+          {error && <Text style={{ color: theme.colors.error }}>{error}</Text>}
         </View>
-        <Button mode="contained" style={styles.button} disabled={!title || !description}
-          onPress={handleSubmit}
-        >Add Habit</Button>
-        {error && <Text style={{ color: theme.colors.error }}>{error}</Text>}
       </View>
       );
   }
@@ -74,14 +77,13 @@ export default function AddHabbitScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      padding: 20,
       justifyContent: "center",
-      backgroundColor: "#ffffff",
+      alignItems: "center",
     },
     title: {
       fontSize: 24,
       fontWeight: "bold",
-      color: "#2c3e50",
+      color: "#5e5d5dff",
       textAlign: "center",
       marginBottom: 30,
     },
@@ -95,5 +97,9 @@ export default function AddHabbitScreen() {
     button: {
       marginTop: 20,
       paddingVertical: 8,
+    },
+    form: {
+      width: '90%',
+      padding: 20,
     },
   });

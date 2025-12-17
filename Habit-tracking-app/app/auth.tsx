@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { useAuth } from "../lib/auth-context";
 import { useRouter } from "expo-router";
-import { Platform, StyleSheet, View, TextInput } from "react-native";
-import { Button, Text, useTheme } from "react-native-paper";
+import {  StyleSheet, View } from "react-native";
+import { Button, Text, useTheme, TextInput } from "react-native-paper";
 
 export default function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  // const [loading, setLoading] = useState<boolean>(false);
 
   const theme = useTheme();
   const router = useRouter();
@@ -52,7 +52,7 @@ export default function AuthScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }] }>
       <View style={styles.content}>
         <Text style={styles.title} variant="headlineMedium">
           {isSignUp ? "Create Account" : "Welcome Back"}
@@ -64,6 +64,7 @@ export default function AuthScreen() {
           placeholder="example@gmail.com"
           mode="outlined"
           style={styles.input}
+          value={email}
           onChangeText={setEmail}
         />
 
@@ -72,6 +73,7 @@ export default function AuthScreen() {
           mode="outlined"
           secureTextEntry
           style={styles.input}
+          value={password}
           onChangeText={setPassword}
         />
 

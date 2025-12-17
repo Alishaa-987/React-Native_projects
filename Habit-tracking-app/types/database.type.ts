@@ -6,5 +6,5 @@ export interface Habit extends Models.Document{
     description : string;
     frequency: "daily" | "weekly" | "monthly";
     streak_count: number;
-    last_completed: string;
+    last_completed: string | null;
 }

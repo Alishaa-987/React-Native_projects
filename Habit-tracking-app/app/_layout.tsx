@@ -4,13 +4,7 @@ import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { View } from "react-native";
-const theme = {
-  colors: {
-    onSurfaceVariant: '#2c3e50',
-    primary: '#2c3e50',
-  },
-};
+import theme from "@/lib/theme";
 
 function RouteGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -33,17 +27,16 @@ function RouteGuard({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-<GestureHandlerRootView>
-  <View style={{ flex: 1 }}></View>
-    <AuthProvider>
-      <PaperProvider theme={theme}>
-        <SafeAreaProvider>
-          <RouteGuard>
-            <Slot />
-          </RouteGuard>
-        </SafeAreaProvider>
-      </PaperProvider>
-    </AuthProvider>
-  </GestureHandlerRootView>
+    <GestureHandlerRootView>
+      <AuthProvider>
+        <PaperProvider theme={theme}>
+          <SafeAreaProvider>
+            <RouteGuard>
+              <Slot />
+            </RouteGuard>
+          </SafeAreaProvider>
+        </PaperProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -1,22 +1,28 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import theme from "@/lib/theme";
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={{ headerStyle: {backgroundColor: '#f5f5f5'},
-      headerShadowVisible: false,
-      tabBarStyle: {backgroundColor: '#f5f5f5',
-        borderTopWidth: 0,
-        elevation: 0,
-        shadowOpacity: 0,
-      },
-      tabBarActiveTintColor: '#6200ee',
-      tabBarInactiveTintColor: '#666'
-    }}>
+    <Tabs
+      screenOptions={{
+        headerStyle: { backgroundColor: theme.colors.background },
+        headerShadowVisible: false,
+        tabBarStyle: {
+          backgroundColor: theme.colors.background,
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: "Today's Habits",
+          headerShown: false,
           tabBarIcon: (props: any) => (
            <MaterialCommunityIcons
            name="calendar-today"
