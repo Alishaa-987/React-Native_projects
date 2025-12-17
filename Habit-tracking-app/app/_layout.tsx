@@ -1,9 +1,10 @@
+import React, { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { Slot, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
+import { Slot, useRouter, useSegments } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { View } from "react-native";
 const theme = {
   colors: {
     onSurfaceVariant: '#2c3e50',
@@ -24,7 +25,7 @@ function RouteGuard({ children }: { children: React.ReactNode }) {
       router.replace("/");
 
     }
-  }, [isLoadingUser, user]);
+  }, [isLoadingUser, user, router, segments]);
   return <>{children}</>
 
 }
@@ -32,7 +33,8 @@ function RouteGuard({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-
+<GestureHandlerRootView>
+  <View style={{ flex: 1 }}></View>
     <AuthProvider>
       <PaperProvider theme={theme}>
         <SafeAreaProvider>
@@ -42,5 +44,6 @@ export default function RootLayout() {
         </SafeAreaProvider>
       </PaperProvider>
     </AuthProvider>
+  </GestureHandlerRootView>
   );
 }

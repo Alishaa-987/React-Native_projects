@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return error.message;
       }
 
-      return "An error occured during signup";
+      return "An error occurred during signup";
     }
   };
   const signIn = async (email: string, password: string) => {
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return error.message;
       }
 
-      return "An error occured during sign in";
+      return "An error occurred during sign in";
     }
   };
 

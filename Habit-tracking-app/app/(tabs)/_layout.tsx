@@ -17,11 +17,11 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Today's Habits",
-          tabBarIcon: ({ color,size }) => (
+          tabBarIcon: (props: any) => (
            <MaterialCommunityIcons
            name="calendar-today"
-           size={size}
-           color={color}
+           size={props.size}
+           color={props.color}
            />
           ),
         }}
@@ -31,11 +31,11 @@ export default function TabsLayout() {
         name="streaks"
         options={{
           title: "Streaks",
-          tabBarIcon: ({ color,size }) => (
+          tabBarIcon: (props: any) => (
            <MaterialCommunityIcons
            name="chart-line"
-           size={size}
-           color={color}
+           size={props.size}
+           color={props.color}
            />
           ),
         }}
@@ -45,11 +45,11 @@ export default function TabsLayout() {
         name="add-habbit"
         options={{
           title: "Add Habbit",
-          tabBarIcon: ({ color,size }) => (
+          tabBarIcon: (props: any) => (
            <MaterialCommunityIcons
            name="plus-circle"
-           size={size}
-           color={color}
+           size={props.size}
+           color={props.color}
            />
           ),
         }}

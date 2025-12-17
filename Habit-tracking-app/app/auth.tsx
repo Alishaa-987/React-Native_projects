@@ -1,14 +1,15 @@
-import { useAuth } from "@/lib/auth-context";
+import React, { useState } from "react";
+import { useAuth } from "../lib/auth-context";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
-import { Button, Text, TextInput, useTheme } from "react-native-paper";
+import { Platform, StyleSheet, View, TextInput } from "react-native";
+import { Button, Text, useTheme } from "react-native-paper";
 
 export default function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string | null>("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const theme = useTheme();
   const router = useRouter();
@@ -29,15 +30,16 @@ export default function AuthScreen() {
     setError(null);
 
     if (isSignUp) {
-      const error = await signUp(email, password);
-      if (error) {
-        setError(error);
+      const errMsg = await signUp(email, password);
+      if (errMsg) {
+        setError(errMsg);
         return;
       }
+      router.replace("/");
     } else {
-      const error = await signIn(email, password);
-      if (error) {
-        setError(error);
+      const errMsg = await signIn(email, password);
+      if (errMsg) {
+        setError(errMsg);
         return;
       }
 
@@ -50,19 +52,14 @@ export default function AuthScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title} variant="headlineMedium">
-          {" "}
           {isSignUp ? "Create Account" : "Welcome Back"}
         </Text>
 
         <TextInput
           label="Email"
-          autoCapitalize="none"
           keyboardType="email-address"
           placeholder="example@gmail.com"
           mode="outlined"
@@ -72,7 +69,6 @@ export default function AuthScreen() {
 
         <TextInput
           label="Password"
-          autoCapitalize="none"
           mode="outlined"
           secureTextEntry
           style={styles.input}
@@ -95,7 +91,7 @@ export default function AuthScreen() {
             : "Don't have an account? Sign Up"}
         </Button>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
