@@ -133,7 +133,7 @@ export default function Index() {
   const renderRightActions = (habitId: string) => (
     <View style={[styles.swipeActionRight, { backgroundColor: theme.colors.primary }]}>
       {isHabitCompleted(habitId) ? (
-        <Text> Completed !</Text>
+        <Text style={{ color: "#fff" }}> Completed !</Text>
       ) : (
         <MaterialCommunityIcons name="check-circle-outline" size={32} color="#fff" />
       )}
@@ -149,15 +149,17 @@ export default function Index() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <View style={styles.headerTitle}>
+        <View style={styles.headerLeft}>
           <Text variant="headlineSmall" style={[styles.title, { color: theme.colors.onBackground }]}>Todays Habits</Text>
         </View>
-        <Button mode="text" onPress={signOut} icon={"logout"}>
-          Sign Out
-        </Button>
+        <View style={styles.headerRight}>
+          <Button mode="text" onPress={signOut} icon={"logout"}>
+            Sign Out
+          </Button>
+        </View>
       </View>
 
-      <RN.ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {habits?.length === 0 ? (
           <View style={styles.emptyState}>
             {" "}
@@ -192,23 +194,30 @@ export default function Index() {
                   { backgroundColor: theme.colors.surface },
                   isHabitCompleted(item.$id) && styles.cardCompleted,
                 ]}
-                elevation={0}
+                elevation={2}
               >
-                <View style={styles.cardContent}>
-                  <Text style={[styles.cardTitle, { color: theme.colors.onBackground }]}> {item.title}</Text>
-                  <Text style={[styles.cardDescription, { color: theme.colors.onSurfaceVariant }]}> 
-                    {" "}
-                    {item.description}
-                  </Text>
-                  <View style={styles.cardFooter}>
-                    <View style={[styles.streakBadge, { backgroundColor: theme.colors.background }]}>
-                      <MaterialCommunityIcons name="fire" size={18} color={theme.colors.primary} />
-                      <Text style={[styles.streakText, { color: theme.colors.primary }]}>{item.streak_count} day streak</Text>
-                    </View>
-                    <View style={[styles.frequencyBadge, { backgroundColor: theme.colors.background }]}>
-                      <Text style={[styles.frequencyText, { color: theme.colors.onSurfaceVariant }]}> 
-                        {item.frequency.charAt(0).toUpperCase() + item.frequency.slice(1)}
-                      </Text>
+                <View style={styles.cardRow}>
+                  <View style={[styles.cardAccent, { backgroundColor: theme.colors.primary }]} />
+                  <View style={styles.cardContent}>
+                    <Text style={[styles.cardTitle, { color: theme.colors.onBackground }]}> {item.title}</Text>
+                    <Text style={[styles.cardDescription, { color: theme.colors.onSurfaceVariant }]}> 
+                      {" "}
+                      {item.description}
+                    </Text>
+                    <View style={styles.cardFooter}>
+                      <View style={styles.cardFooterLeft}>
+                        <View style={[styles.streakBadge, { backgroundColor: theme.colors.background }]}>
+                          <MaterialCommunityIcons name="fire" size={18} color={theme.colors.primary} />
+                          <Text style={[styles.streakText, { color: theme.colors.primary }]}>{item.streak_count} day streak</Text>
+                        </View>
+                      </View>
+                      <View style={styles.cardFooterRight}>
+                        <View style={[styles.frequencyBadge, { backgroundColor: theme.colors.background }]}>
+                          <Text style={[styles.frequencyText, { color: theme.colors.onSurfaceVariant }]}> 
+                            {item.frequency.charAt(0).toUpperCase() + item.frequency.slice(1)}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -216,7 +225,7 @@ export default function Index() {
             </Swipeable>
           ))
         )}
-      </RN.ScrollView>
+      </ScrollView>
     </View>
   );
 }
@@ -228,20 +237,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#121212",
   },
   header: {
-    position: "relative",
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  headerTitle: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
+  headerLeft: {
+    flex: 1,
+    alignItems: "flex-start",
+  },
+  headerRight: {
+    marginLeft: 12,
   },
   title: {
     fontWeight: "bold",
@@ -256,7 +262,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#f0f0f0",
+  },
+
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "stretch",
+  },
+  cardAccent: {
+    width: 6,
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
+    marginRight: 12,
   },
 
   cardCompleted: {
@@ -279,8 +298,14 @@ const styles = StyleSheet.create({
   },
   cardFooter: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+  },
+  cardFooterLeft: {
+    flex: 1,
+    alignItems: "flex-start",
+  },
+  cardFooterRight: {
+    alignItems: "flex-end",
   },
   streakBadge: {
     flexDirection: "row",
