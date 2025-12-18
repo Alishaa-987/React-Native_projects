@@ -21,6 +21,7 @@ export default function Index() {
 
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completeHabits, setCompleteHabits] = useState<string[]>([]);
+  const [allCompletions, setAllCompletions] = useState<HabitCompletion[]>([]);
 
   const swipeableRefs = useRef<{ [key: string]: Swipeable | null }>({})
   const fetchHabits = useCallback(async () => {
@@ -56,34 +57,78 @@ export default function Index() {
     }
   }, [user]);
 
+  const fetchAllCompletions = useCallback(async () => {
+    try {
+      const response = await databases.listDocuments<HabitCompletion>(
+        DATABASE_ID,
+        HABBIT_COMPLETIONS_COLLECTION_ID,
+        [Query.equal("user_id", user?.$id ?? "")]
+      );
+      setAllCompletions(response.documents as HabitCompletion[]);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user) {
-      const habbitChannel = `databases.${DATABASE_ID}.collections.${HABBIT_COLLECTION_ID}.documents`;
-      const habbitsSubscription = client.subscribe(habbitChannel, (response: RealtimeResponse) => {
-        // Appwrite realtime event suffixes are 'create' | 'update' | 'delete'
-        if (response.events.some((e) => e.includes(".documents.") && e.endsWith(".create"))) {
-          fetchHabits();
-        } else if (response.events.some((e) => e.includes(".documents.") && e.endsWith(".update"))) {
-          fetchHabits();
-        } else if (response.events.some((e) => e.includes(".documents.") && e.endsWith(".delete"))) {
-          fetchHabits();
-        }
-      });
+      let habbitsSubscription: (() => void) | undefined;
+      let completionsSubscription: (() => void) | undefined;
 
-      const completionChannel = `databases.${DATABASE_ID}.collections.${HABBIT_COMPLETIONS_COLLECTION_ID}.documents`;
-      const completionsSubscription = client.subscribe(completionChannel, (response: RealtimeResponse) => {
-        if (response.events.some((e) => e.includes(".documents.") && e.endsWith(".create"))) {
-          fetchTodayCompletions();
+      const initSubscriptions = async (retry = true) => {
+        try {
+          const habbitChannel = `databases.${DATABASE_ID}.collections.${HABBIT_COLLECTION_ID}.documents`;
+          habbitsSubscription = client.subscribe(habbitChannel, (response: RealtimeResponse) => {
+            // respond to any create/update/delete on habits
+            if (response.events.some((e) => e.includes(".documents.") && (e.endsWith(".create") || e.endsWith(".update") || e.endsWith(".delete")))) {
+              fetchHabits();
+            }
+          });
+
+          const completionChannel = `databases.${DATABASE_ID}.collections.${HABBIT_COMPLETIONS_COLLECTION_ID}.documents`;
+          completionsSubscription = client.subscribe(completionChannel, (response: RealtimeResponse) => {
+            // respond to any completion changes so today's and all completions stay current
+            if (response.events.some((e) => e.includes(".documents.") && (e.endsWith(".create") || e.endsWith(".update") || e.endsWith(".delete")))) {
+              fetchTodayCompletions();
+              fetchAllCompletions();
+            }
+          });
+        } catch (err: any) {
+          console.warn('Realtime subscribe failed:', err?.message || err);
+          // if it failed due to socket not ready, try one retry after short delay
+          if (retry) {
+            setTimeout(() => initSubscriptions(false), 1000);
+          }
         }
-      });
+      };
+
+      // ensure we always fetch once on mount even if realtime fails
+      initSubscriptions();
       fetchHabits();
       fetchTodayCompletions();
+      fetchAllCompletions();
+
       return () => {
-        habbitsSubscription();
-        completionsSubscription();
+        try { habbitsSubscription && habbitsSubscription(); } catch {}
+        try { completionsSubscription && completionsSubscription(); } catch {}
       }
     }
-  }, [user, fetchHabits, fetchTodayCompletions]);
+  }, [user, fetchHabits, fetchTodayCompletions, fetchAllCompletions]);
+
+  // short polling fallback: try a few times after mount to catch new habits
+  useEffect(() => {
+    if (!user) return;
+    let attempts = 0;
+    const maxAttempts = 4;
+    const iv = setInterval(() => {
+      attempts += 1;
+      fetchHabits();
+      fetchTodayCompletions();
+      fetchAllCompletions();
+      if (attempts >= maxAttempts) clearInterval(iv);
+    }, 1500);
+    return () => clearInterval(iv);
+  }, [user, fetchHabits, fetchTodayCompletions, fetchAllCompletions]);
   const handleDeleteHabit = async (id: string) => {
     try {
       await databases.deleteDocument(DATABASE_ID, HABBIT_COLLECTION_ID, id);
@@ -108,6 +153,8 @@ export default function Index() {
 
       // optimistic UI update: mark as completed for today
       setCompleteHabits((prev) => Array.from(new Set([...prev, id])));
+      // optimistic add to allCompletions so streak calc updates immediately
+      setAllCompletions((prev) => [{ ...(created as unknown as HabitCompletion) }, ...prev]);
 
       const habit = habits?.find((h) => h.$id === id)
       if (!habit) return;
@@ -130,6 +177,34 @@ export default function Index() {
     return completeHabits?.includes(habitId);
   };
 
+  // compute current streak for a habit using full completion history
+  const getStreakForHabit = (habitId: string) => {
+    const habitCompletions = allCompletions
+      .filter((c) => c.habit_id === habitId)
+      .sort((a, b) => new Date(a.completed_at).getTime() - new Date(b.completed_at).getTime());
+
+    if (habitCompletions.length === 0) return 0;
+    let currentStreak = 0;
+    let lastDate: Date | null = null;
+
+    habitCompletions.forEach((c) => {
+      const date = new Date(c.completed_at);
+      if (lastDate) {
+        const diff = (date.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (diff <= 1.5) {
+          currentStreak += 1;
+        } else {
+          currentStreak = 1;
+        }
+      } else {
+        currentStreak = 1;
+      }
+      lastDate = date;
+    });
+
+    return currentStreak;
+  };
+
   const renderRightActions = (habitId: string) => (
     <View style={[styles.swipeActionRight, { backgroundColor: theme.colors.primary }]}>
       {isHabitCompleted(habitId) ? (
@@ -150,7 +225,7 @@ export default function Index() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text variant="headlineSmall" style={[styles.title, { color: theme.colors.onBackground }]}>Todays Habits</Text>
+          <Text variant="titleLarge" style={[styles.title, { color: theme.colors.onBackground }]}>Todays Habits</Text>
         </View>
         <View style={styles.headerRight}>
           <Button mode="text" onPress={signOut} icon={"logout"}>
@@ -208,7 +283,7 @@ export default function Index() {
                       <View style={styles.cardFooterLeft}>
                         <View style={[styles.streakBadge, { backgroundColor: theme.colors.background }]}>
                           <MaterialCommunityIcons name="fire" size={18} color={theme.colors.primary} />
-                          <Text style={[styles.streakText, { color: theme.colors.primary }]}>{item.streak_count} day streak</Text>
+                          <Text style={[styles.streakText, { color: theme.colors.primary }]}>{getStreakForHabit(item.$id)} day streak</Text>
                         </View>
                       </View>
                       <View style={styles.cardFooterRight}>
@@ -264,7 +339,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#e6eef8",
   },
 
   cardRow: {

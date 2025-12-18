@@ -35,8 +35,8 @@ export default function AddHabbitScreen() {
 
       }
     );
-      // navigate back to root and replace so index re-fetches
-      router.replace("/");
+      // navigate back to root and force a refresh param so index re-fetches immediately
+      router.replace(`/?refresh=${Date.now()}`);
     } catch (err) {
   console.log("Appwrite error:", err);
   if (err instanceof Error) {
@@ -51,18 +51,18 @@ export default function AddHabbitScreen() {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.form}>
-          <Text style={[styles.title, { color: theme.colors.onBackground }]}>Add New Habit</Text>
+            <Text style={[styles.title, { color: theme.colors.onBackground }]}>Add New Habit</Text>
           <TextInput label="Title" mode="outlined" style={styles.input} value={title} onChangeText={setTitle} />
           <TextInput label="Description" mode="outlined" style={styles.input} value={description} onChangeText={setDescription} />
           <View style={styles.frequencyContainer}>
-            <SegmentedButtons
-              value={frequency}
-              onValueChange={(value) => setFrequency(value as Frequency)}
-              buttons={FREQUENCIES.map((freq) => ({
-                value: freq,
-                label: freq.charAt(0).toUpperCase() + freq.slice(1),
-              }))}
-            />
+              <SegmentedButtons
+                value={frequency}
+                onValueChange={(value) => setFrequency(value as Frequency)}
+                buttons={FREQUENCIES.map((freq) => ({
+                  value: freq,
+                  label: freq.charAt(0).toUpperCase() + freq.slice(1),
+                }))}
+              />
           </View>
           <Button mode="contained" style={styles.button} buttonColor={theme.colors.primary} disabled={!title || !description} onPress={handleSubmit}>
             Add Habit
@@ -93,6 +93,9 @@ export default function AddHabbitScreen() {
     },
     frequencyContainer: {
       marginBottom: 30,
+    },
+    segmentWrapper: {
+      /* removed outer wrapper style; SegmentedButtons will use theme styling */
     },
     button: {
       marginTop: 20,

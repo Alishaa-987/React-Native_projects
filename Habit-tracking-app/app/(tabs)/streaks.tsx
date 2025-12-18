@@ -1,56 +1,87 @@
-import { DATABASE_ID, databases, HABBIT_COLLECTION_ID, HABBIT_COMPLETIONS_COLLECTION_ID, Habit, HabitCompletion } from "@/lib/appwrite";
+import { client, DATABASE_ID, databases, HABBIT_COLLECTION_ID, HABBIT_COMPLETIONS_COLLECTION_ID, Habit, HabitCompletion, RealtimeResponse } from "@/lib/appwrite";
 import { useAuth } from "@/lib/auth-context";
 import { Query } from "appwrite";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView } from "react-native-gesture-handler";
 import { Text, View , StyleSheet } from "react-native";
-import { Card } from "react-native-paper";
+import { Card, useTheme } from "react-native-paper";
 
 
 export default function StreaksScreen() {
+  const theme = useTheme();
 
-    const [habits, setHabits] = useState<Habit[]>([]);
-    const [completeHabits, setCompleteHabits] = useState<HabitCompletion[]>([]);
-    const { user } = useAuth();
-    useEffect(() => {
-        if (user) {
-            fetchHabits();
-            fetchCompletions();
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [completeHabits, setCompleteHabits] = useState<HabitCompletion[]>([]);
+  const { user } = useAuth();
+
+  const fetchHabits = useCallback(async () => {
+    try {
+      const response = await databases.listDocuments<Habit>(
+        DATABASE_ID,
+        HABBIT_COLLECTION_ID,
+        [Query.equal("user_id", user?.$id ?? "")]
+      );
+      setHabits(response.documents as Habit[]);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [user]);
+
+  const fetchCompletions = useCallback(async () => {
+    try {
+      const response = await databases.listDocuments<HabitCompletion>(
+        DATABASE_ID,
+        HABBIT_COMPLETIONS_COLLECTION_ID,
+        [Query.equal("user_id", user?.$id ?? "")]
+      );
+      const completions = response.documents as HabitCompletion[];
+      setCompleteHabits(completions);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const habitsChannel = `databases.${DATABASE_ID}.collections.${HABBIT_COLLECTION_ID}.documents`;
+      const habitsSubscription = client.subscribe(habitsChannel, (response: RealtimeResponse) => {
+        if (response.events.some((e) => e.includes(".documents.") && (e.endsWith(".create") || e.endsWith(".update") || e.endsWith(".delete")))) {
+          fetchHabits();
         }
-    }, [user]);
+      });
 
-    const fetchHabits = async () => {
-        try {
-            const response = await databases.listDocuments<Habit>(
-                DATABASE_ID,
-                HABBIT_COLLECTION_ID,
-                [Query.equal("user_id", user?.$id ?? "")]
-            );
-
-            setHabits(response.documents as Habit[]);
-        } catch (error) {
-            console.error(error);
+      const completionsChannel = `databases.${DATABASE_ID}.collections.${HABBIT_COMPLETIONS_COLLECTION_ID}.documents`;
+      const completionsSubscription = client.subscribe(completionsChannel, (response: RealtimeResponse) => {
+        if (response.events.some((e) => e.includes(".documents.") && (e.endsWith(".create") || e.endsWith(".update") || e.endsWith(".delete")))) {
+          fetchCompletions();
         }
-    };
+      });
 
+      fetchHabits();
+      fetchCompletions();
 
-    const fetchCompletions = async () => {
-        try {
+      return () => {
+        habitsSubscription();
+        completionsSubscription();
+      };
+    }
+  }, [user, fetchHabits, fetchCompletions]);
 
-            const response = await databases.listDocuments<HabitCompletion>(
-                DATABASE_ID,
-                HABBIT_COMPLETIONS_COLLECTION_ID,
-                [Query.equal("user_id", user?.$id ?? "")
-                ]
-            );
-            const completions = response.documents as HabitCompletion[]
-            setCompleteHabits(completions);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+  // short polling fallback: try a few times after mount to catch new habits/completions
+  useEffect(() => {
+    if (!user) return;
+    let attempts = 0;
+    const maxAttempts = 4;
+    const iv = setInterval(() => {
+      attempts += 1;
+      fetchHabits();
+      fetchCompletions();
+      if (attempts >= maxAttempts) clearInterval(iv);
+    }, 1500);
+    return () => clearInterval(iv);
+  }, [user, fetchHabits, fetchCompletions]);
 
-    interface StreakData {
+  interface StreakData {
         streak: number;
         bestStreak: number;
         total: number;
@@ -103,24 +134,23 @@ export default function StreaksScreen() {
         const rankedHabits = habitStreaks.sort((a, b) => b.bestStreak - a.bestStreak);
         const badgeStyles = [styles.badge1, styles.badge2, styles.badge3];
 
-   return (
+  return (
     <View style={styles.container}>
-      <Text style={styles.title} variant="headlineSmall">
-        {" "}
+      <Text style={[styles.title, { color: theme.colors.onBackground }]} variant="titleLarge">
         Habit Streaks
       </Text>
 
       {rankedHabits.length > 0 && (
         <View style={styles.rankingContainer}>
           {" "}
-          <Text style={styles.rankingTitle}> 🏅 Top Streaks</Text>{" "}
+          <Text style={[styles.rankingTitle, { color: theme.colors.primary }]}> 🏅 Top Streaks</Text>
           {rankedHabits.slice(0, 3).map((item, key) => (
             <View key={key} style={styles.rankingRow}>
               <View style={[styles.rankingBadge, badgeStyles[key]]}>
                 <Text style={styles.rankingBadgeText}> {key + 1} </Text>
               </View>
               <Text style={styles.rankingHabit}> {item.habit.title}</Text>
-              <Text style={styles.rankingStreak}> {item.bestStreak}</Text>
+              <Text style={[styles.rankingStreak, { color: theme.colors.primary }]}>{item.bestStreak}</Text>
             </View>
           ))}
         </View>
@@ -142,11 +172,9 @@ export default function StreaksScreen() {
             >
               <Card.Content>
                 <Text variant="titleMedium" style={styles.habitTitle}>
-                  {" "}
                   {habit.title}
                 </Text>
                 <Text style={styles.habitDescription}>
-                  {" "}
                   {habit.description}
                 </Text>
                 <View style={styles.statsRow}>
@@ -179,8 +207,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    fontWeight: "bold",
-    marginBottom: 16,
+    fontWeight: "800",
+    marginBottom: 12,
+    fontSize: 22,
   },
   card: {
     marginBottom: 18,
@@ -196,7 +225,7 @@ const styles = StyleSheet.create({
   },
   firstCard: {
     borderWidth: 2,
-    borderColor: "#7c4dff",
+    borderColor: "#1976d2",
   },
   habitTitle: {
     fontWeight: "bold",
@@ -261,10 +290,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   rankingTitle: {
-    fontWeight: "bold",
+    fontWeight: "700",
     fontSize: 18,
     marginBottom: 12,
-    color: "#7c4dff",
     letterSpacing: 0.5,
   },
   rankingRow: {
@@ -302,7 +330,7 @@ const styles = StyleSheet.create({
   },
   rankingStreak: {
     fontSize: 14,
-    color: "#7c4dff",
     fontWeight: "bold",
   },
+  /* kept original badges styles; center-only styles removed */
 });
