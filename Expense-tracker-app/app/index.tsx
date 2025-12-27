@@ -2,7 +2,7 @@ import { View, StyleSheet, Image } from 'react-native'
 import React, { useEffect } from 'react'
 import { colors } from '@/constants/theme'
 import { useRouter } from 'expo-router';
-const index = () => {
+export default function Index () {
     const router = useRouter();
     useEffect(() => {
         setTimeout(() => {
@@ -16,13 +16,12 @@ const index = () => {
             <Image
                 style={styles.logo}
                 resizeMode="contain"
-                source={require("../assets/images/splash.png")}
+                source={require("../assets/images/splashImage.png")}
             />
         </View>
     )
 }
 
-export default index
 
 const styles = StyleSheet.create({
     container: {
