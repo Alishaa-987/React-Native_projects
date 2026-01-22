@@ -1,9 +1,10 @@
 import { client, DATABASE_ID, databases, HABBIT_COLLECTION_ID, HABBIT_COMPLETIONS_COLLECTION_ID, Habit, HabitCompletion, RealtimeResponse } from "@/lib/appwrite";
 import { useAuth } from "@/lib/auth-context";
+import { useFocusEffect } from "@react-navigation/native";
 import { Query } from "appwrite";
 import { useCallback, useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { Text, View , StyleSheet } from "react-native";
 import { Card, useTheme } from "react-native-paper";
 
 
@@ -66,6 +67,15 @@ export default function StreaksScreen() {
       };
     }
   }, [user, fetchHabits, fetchCompletions]);
+
+  useFocusEffect(
+    useCallback(() => {
+        if (user) {
+            fetchHabits();
+            fetchCompletions();
+        }
+    }, [user, fetchHabits, fetchCompletions])
+  );
 
   // short polling fallback: try a few times after mount to catch new habits/completions
   useEffect(() => {
@@ -142,7 +152,6 @@ export default function StreaksScreen() {
 
       {rankedHabits.length > 0 && (
         <View style={styles.rankingContainer}>
-          {" "}
           <Text style={[styles.rankingTitle, { color: theme.colors.primary }]}> 🏅 Top Streaks</Text>
           {rankedHabits.slice(0, 3).map((item, key) => (
             <View key={key} style={styles.rankingRow}>

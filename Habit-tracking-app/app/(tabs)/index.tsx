@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { DATABASE_ID, HABBIT_COLLECTION_ID, RealtimeResponse, databases, client, HABBIT_COMPLETIONS_COLLECTION_ID, HabitCompletion } from "@/lib/appwrite";
+import { client, DATABASE_ID, databases, HABBIT_COLLECTION_ID, HABBIT_COMPLETIONS_COLLECTION_ID, HabitCompletion, RealtimeResponse } from "@/lib/appwrite";
 import { useAuth } from "@/lib/auth-context";
 import { Habit } from "@/types/database.type";
-import { Query } from "appwrite";
-import { StyleSheet, View } from "react-native";
-import { Button, Surface, Text, useTheme } from "react-native-paper";
-import { Swipeable, ScrollView } from "react-native-gesture-handler";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { Query } from "appwrite";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { ID } from "react-native-appwrite";
+import { ScrollView, Swipeable } from "react-native-gesture-handler";
+import { Button, Surface, Text, useTheme } from "react-native-paper";
 
  
 
@@ -114,6 +115,16 @@ export default function Index() {
       }
     }
   }, [user, fetchHabits, fetchTodayCompletions, fetchAllCompletions]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        fetchHabits();
+        fetchTodayCompletions();
+        fetchAllCompletions();
+      }
+    }, [user, fetchHabits, fetchTodayCompletions, fetchAllCompletions])
+  );
 
   // short polling fallback: try a few times after mount to catch new habits
   useEffect(() => {
