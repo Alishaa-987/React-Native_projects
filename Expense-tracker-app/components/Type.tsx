@@ -19,7 +19,7 @@ const Type = ({
     }
     return (
         <View>
-            <Text style={[testStyle, style]} {...textProps}>{children}</Text>
+            <Text style={style} {...textProps}>{children}</Text>
         </View>
     )
 }
