@@ -7,14 +7,16 @@ import { verticalScale } from "@/utills/styling";
 import Button from "@/components/Button";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 
 const Welcome = () => {
+  const router = useRouter();
   return (
     <ScreenWrapper>
       {/* Top Section: Sign In */}
       <View style={Styles.topSection}>
-        <TouchableOpacity style={Styles.loginButton}>
-          <Typo fontWeight={"600"} size={18} color={"white"}>
+        <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
+          <Typo fontWeight={"500"} size={18} color={"white"}>
             Sign in
           </Typo>
         </TouchableOpacity>
@@ -42,7 +44,11 @@ const Welcome = () => {
       {/* Footer */}
       <View style={Styles.footer}>
         <Animated.View
-          entering={FadeInDown.duration(1000).springify().damping(12)}
+          entering={FadeInDown
+            .duration(2200)
+            // .springify()
+            .damping(12)
+          .delay(300)}
           style={{ alignItems: "center" }}
         >
           <Typo size={32} fontWeight={"800"}>
@@ -51,15 +57,7 @@ const Welcome = () => {
           <Typo size={35} fontWeight={"800"} color={"white"}>
             of your Finances
           </Typo>
-        </Animated.View>
-
-        <Animated.View
-          entering={FadeInDown.duration(1000)
-            .delay(100)
-            .springify()
-            .damping(12)}
-          style={{ alignItems: "center", gap: 2 }}
-        >
+       
           <Typo size={17} color={colors.textLight}>
             Finances must be arranged to set a
           </Typo>
@@ -68,8 +66,14 @@ const Welcome = () => {
           </Typo>
         </Animated.View>
 
-      <Animated.View entering={FadeInDown.duration(1000).springify().damping(12)} style={{ alignItems: "center" }}>
-          <Button>
+        <Animated.View
+          entering={FadeInDown
+            .duration(1800)
+            .stiffness(60)
+            .damping(22)}
+          style={{ alignItems: "center" }}
+        >
+          <Button onPress={()=> router.push('/(auth)/register')}>
             <Typo size={22} color={colors.neutral900} fontWeight={"600"}>
               Get Started
             </Typo>
@@ -83,26 +87,27 @@ const Welcome = () => {
 const Styles = StyleSheet.create({
   topSection: {
     paddingHorizontal: spacingX._20,
-    paddingTop: spacingY._5, // adjust to move button up/down
+    paddingTop: 0, // adjust to move button up/down
+    alignItems: "flex-end",
   },
-  loginButton: {
-    alignSelf: "flex-end",
-    paddingHorizontal: spacingX._20,
-    paddingVertical: spacingY._10,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.4)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
+  // loginButton: {
+  //   alignSelf: "flex-end",
+  //   paddingHorizontal: spacingX._20,
+  //   paddingVertical: spacingY._10,
+  //   backgroundColor: "rgba(0,0,0,0.3)",
+  //   borderRadius: 20,
+  //   borderWidth: 1.5,
+  //   borderColor: "rgba(255,255,255,0.4)",
+  //   shadowColor: "#000",
+  //   shadowOffset: { width: 0, height: 4 },
+  //   shadowOpacity: 0.15,
+  //   shadowRadius: 12,
+  //   elevation: 8,
+  // },
   WelcomeImage: {
     width: "100%",
     height: verticalScale(300),
-    marginTop: verticalScale(50),
+    marginTop: verticalScale(70),
     alignSelf: "center",
   },
   topGlow: {
@@ -112,7 +117,7 @@ const Styles = StyleSheet.create({
   footer: {
     backgroundColor: colors.neutral900,
     alignItems: "center",
-    paddingTop: verticalScale(40),
+    paddingTop: verticalScale(80),
     paddingBottom: verticalScale(40),
     paddingHorizontal: spacingX._20,
     gap: spacingY._15,
