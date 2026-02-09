@@ -117,7 +117,7 @@ const Styles = StyleSheet.create({
   footer: {
     backgroundColor: colors.neutral900,
     alignItems: "center",
-    paddingTop: verticalScale(80),
+    paddingTop: verticalScale(40),
     paddingBottom: verticalScale(40),
     paddingHorizontal: spacingX._20,
     gap: spacingY._15,
