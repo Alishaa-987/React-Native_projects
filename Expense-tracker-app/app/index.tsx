@@ -1,14 +1,17 @@
 import { View, StyleSheet, Image } from 'react-native'
-import React, { useEffect } from 'react'
 import { colors } from '@/constants/theme'
-import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'expo-router';
 export default function Index () {
     const router = useRouter();
+    const pathname = usePathname();
     useEffect(() => {
-        setTimeout(() => {
+        if (pathname !== '/') return; // don't override deep links or other routes
+        const t = setTimeout(() => {
             router.replace('/(auth)/welcome')
         }, 2000)
-    })
+        return () => clearTimeout(t)
+    }, [pathname])
 
 
     return (

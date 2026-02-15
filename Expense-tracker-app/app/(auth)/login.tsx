@@ -10,19 +10,26 @@ import Input from "@/components/input";
 import * as Icons from "phosphor-react-native";
 import Button from "@/components/Button";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/contexts/authContext";
 const Login = () => {
   const eamilRef = useRef("");
   const passwordRef = useRef("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const handleSubmit = () => {
+  const {login: loginUser} = useAuth();
+  const handleSubmit = async () => {
     if(!eamilRef.current || !passwordRef.current){
         Alert.alert("Login", "Please fill all the fields");
         return;
     }
-    console.log("eamil:" , eamilRef.current);
-    console.log("passowrd:" , passwordRef.current);
-    console.log("good to go");
+    setIsLoading(true);
+    const res = await loginUser(eamilRef.current, passwordRef.current);
+    setIsLoading(false);
+    if(!res.success){
+      Alert.alert("Login", res.msg)
+    } else {
+      router.replace('/(tabs)')
+    }
   };
   return (
     <ScreenWrapper>
