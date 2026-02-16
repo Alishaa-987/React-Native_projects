@@ -1,7 +1,7 @@
 import { auth, fireStore } from "@/config/firebase";
 import { AuthContextType, UserType } from "@/types";
 import { useRouter, usePathname } from "expo-router";
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -16,6 +16,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     useEffect (()=>{
         const unsub = onAuthStateChanged(auth, (firebaseUSer)=>{
             console.log('firebase user:', firebaseUSer);
+            console.log('firebase user displayName:', firebaseUSer?.displayName, 'uid:', firebaseUSer?.uid);
             if(firebaseUSer){
                 setUser({
                 uid: firebaseUSer?.uid,
@@ -35,7 +36,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         });
 
         return () => unsub();
-    }, [])
+    }, [router, pathname])
 
     const login = async (email: string , password:string) =>{
         try{
@@ -55,6 +56,12 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
        const  register = async (email: string , password:string , name:string) =>{
         try{
             let response = await createUserWithEmailAndPassword(auth, email, password);
+            // set the displayName on the Firebase Auth user so firebaseUser.displayName is available
+            try{
+                await updateProfile(response.user, { displayName: name });
+            }catch(err){
+                console.log('Failed to update auth displayName:', err);
+            }
             await setDoc(doc(fireStore, "users", response?.user?.uid),{
                 name,
                 email,
@@ -79,16 +86,19 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         try{
            const docRef = doc(fireStore,"users" , uid);
            const docSnap = await getDoc(docRef);
+           const firebaseUser = auth.currentUser;
 
            if (docSnap.exists()){
             const data = docSnap.data();
+            console.log('Firestore user document data for', uid, ':', data);
             const userData : UserType = {
                 uid: data?.uid,
-                name : data?.name || null,
+                name : data?.name || firebaseUser?.displayName || null,
                 email: data?.email || null,
                 image: data?.image || null
             };
             setUser({...userData});
+            console.log('Auth context setUser ->', userData);
            }
         }catch(error : any){
             let msg = error.message;
