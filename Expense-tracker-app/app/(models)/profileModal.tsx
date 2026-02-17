@@ -44,15 +44,29 @@ const ProfileModal = () => {
   }, [user]);
 
   const onPickImage = async ()=>{
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      // allowsEditing: true,
-      aspect: [4,3],
-      quality: 1,
-    });
+    try {
+      // Request permission
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert("Permission Required", "Please allow access to your photo library");
+        return;
+      }
 
-    if(!result.canceled){
-    setUserData({...userData, image: result.assets[0]})
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1,1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        console.log("Image selected:", selectedImage.uri);
+        setUserData({ ...userData, image: selectedImage });
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to pick image");
+      console.log("Image picker error:", error);
     }
   }
 
