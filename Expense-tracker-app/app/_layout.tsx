@@ -11,7 +11,15 @@ const StackLayout = () => {
       options={{
         presentation: "modal",
       }}/>
+
+      <Stack.Screen 
+      name="(modals)/walletModal"
+      options={{
+        presentation: "modal",
+      }}/>
     </Stack>
+
+    
   )
 };
 export default function RootLayout(){
