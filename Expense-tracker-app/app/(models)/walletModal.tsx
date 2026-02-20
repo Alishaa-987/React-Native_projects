@@ -5,28 +5,36 @@ import ModalWrapper from "@/components/ModalWrapper";
 import Typo from "@/components/Typo";
 import { colors, spacingX, spacingY } from "@/constants/theme";
 import { scale, verticalScale } from "@/utills/styling";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ImageUpload from "@/components/ImageUpload";
-import * as ImagePicker from "expo-image-picker";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { WalletType } from "@/types";
 import Button from "@/components/Button";
-import { updateUser } from "@/services/userService";
 import { useAuth } from "@/contexts/authContext";
-import { useRouter } from "expo-router";
-import { createOrUpdateWallet } from "@/services/walletService";
-
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { createOrUpdateWallet, deleteWallet } from "@/services/walletService";
+import * as Icons from "phosphor-react-native";
 const WalletModal = () => {
-  const { user, updateUserData } = useAuth();
+  const { user } = useAuth();
   const [walletData, setWallet] = useState<WalletType>({
     name: "",
     image: null,
   });
 
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(false);
+      const router = useRouter();
 
+  const oldWallet: { name: string; id: string; image: string } =
+    useLocalSearchParams();
 
+  useEffect(() => {
+    if (oldWallet?.id) {
+      setWallet({
+        name: oldWallet?.name,
+        image: oldWallet?.image,
+      });
+    }
+  }, []);
 
   const onSubmit = async () => {
     let { name, image } = walletData;
@@ -36,15 +44,16 @@ const WalletModal = () => {
     }
     console.log("Good to go ");
     const data: WalletType = {
-        name,
-        image,
-        uid: user?.uid
+      name,
+      image,
+      uid: user?.uid,
     };
-    // todo : include wallet id if updating
+
+    if (oldWallet?.id) data.id = oldWallet?.id;
     setLoading(true);
-    const res = await createOrUpdateWallet(data );
+    const res = await createOrUpdateWallet(data);
     setLoading(false);
-    console.log("result", res)
+    console.log("result", res);
     if (res.success) {
       //update user
       router.back();
@@ -53,11 +62,42 @@ const WalletModal = () => {
     }
   };
 
+  const onDelete = async () => {
+    if(!oldWallet?.id ) return ;
+    setLoading(true);
+    const res = await deleteWallet(oldWallet?.id)
+    setLoading(false);
+    if(res.success){
+        router.back();
+    }else{
+        Alert.alert("Wallet" , res.msg)
+    }
+  };
+
+  const showDeleteAlert = () => {
+    Alert.alert(
+      "Confirm",
+      " Are you sure you want to do this?\n This action will remove all the trasaction realted to the wallet",
+  
+    [
+      {
+        text: "Cancel",
+        onPress: () => console.log("cancel delete"),
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        onPress: () => onDelete(),
+        style: "destructive",
+      },
+    ]
+      );
+  };
   return (
     <ModalWrapper>
       <View style={styles.container}>
         <Header
-          title="New Wallet"
+          title={oldWallet?.id ? "Update Wallet" : "New Wallet"}
           leftIcon={<BackButton />}
           style={{ marginBottom: spacingY._10 }}
         />
@@ -68,7 +108,9 @@ const WalletModal = () => {
             <Input
               placeholder="Salary"
               value={walletData.name}
-              onChangeText={(value) => setWallet({ ...walletData, name: value })}
+              onChangeText={(value) =>
+                setWallet({ ...walletData, name: value })
+              }
             />
           </View>
 
@@ -85,9 +127,24 @@ const WalletModal = () => {
         </ScrollView>
       </View>
       <View style={styles.footer}>
+        {oldWallet?.id && !loading && (
+          <Button
+            onPress={showDeleteAlert}
+            style={{
+              backgroundColor: colors.rose,
+              paddingHorizontal: spacingX._15,
+            }}
+          >
+            <Icons.Trash
+              color={colors.white}
+              size={verticalScale(24)}
+              weight="bold"
+            />
+          </Button>
+        )}
         <Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
           <Typo color={colors.black} fontWeight={"700"}>
-            Add Wallet
+            {oldWallet?.id ? "Update Wallet" : "Add Wallet"}
           </Typo>
         </Button>
       </View>

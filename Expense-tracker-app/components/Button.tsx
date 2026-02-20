@@ -33,9 +33,8 @@ const styles = StyleSheet.create({
         borderRadius: radius._17,
         borderCurve: "continuous",
         height: verticalScale(59),
-        width: verticalScale(350),
+        paddingHorizontal: 16,
         justifyContent: "center",
         alignItems: "center",
-        alignSelf: 'center',
     },
 });
