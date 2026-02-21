@@ -80,6 +80,6 @@ export const incomeCategory: CategoryType = {
 };
 
 export const transactionTypes = [
-    {lable: "Expense", value:"expense"},
+    {label: "Expense", value:"expense"},
     {label: "Income" , value: "income"},
 ];

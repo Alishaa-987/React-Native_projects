@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     container:
     {
         flex: 1,
-        paddingTop: isIos ? spacingY._15: 50,
+        paddingTop: isIos ? spacingY._15: 40,
         paddingBottom: isIos ? spacingY._20 : spacingY._10,
     },
 })
