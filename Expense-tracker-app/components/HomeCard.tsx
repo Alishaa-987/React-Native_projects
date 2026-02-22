@@ -21,15 +21,22 @@ const HomeCard = () => {
   ]);
 
   const getTotals = () => {
-     return wallets.reduce(
-      (totals:any, item:WalletType) => {
-        totals.balance = totals.balance + Number(item.amount);
-        totals.income = totals.income + Number(item.totalIncome);
-        totals.expenses = totals.expenses + Number(item.totalExpenses);
-        return totals
+    const totals = wallets.reduce(
+      (acc:any, item:WalletType) => {
+        const income = Number(item.totalIncome || 0);
+        const expenses = Number(item.totalExpenses || 0);
+        const walletAmount = Number(item.amount || 0);
+        // Income is cumulative total
+        acc.income = acc.income + income;
+        // Expenses is cumulative total
+        acc.expenses = acc.expenses + expenses;
+        // Balance is sum of all wallet amounts (same as wallet tab)
+        acc.balance = acc.balance + walletAmount;
+        return acc;
       },
-      { balance: 0, income: 0, expense: 0 },
+      { balance: 0, income: 0, expenses: 0 },
     );
+    return totals;
   };
   return (
     <ImageBackground
@@ -91,7 +98,7 @@ const HomeCard = () => {
               </Typo>
               <View style={{ alignSelf: "center" }}>
                 <Typo size={17} color={colors.rose} fontWeight={"600"}>
-            $ {walletLoading ? "---" : getTotals()?.expense?.toFixed(2)}
+            $ {walletLoading ? "---" : getTotals()?.expenses?.toFixed(2)}
                 </Typo>
               </View>
             </View>

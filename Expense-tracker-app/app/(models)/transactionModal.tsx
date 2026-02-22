@@ -21,7 +21,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { deleteWallet } from "@/services/walletService";
 import * as Icons from "phosphor-react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { expenseCategories, transactionTypes, incomeCategories } from "@/constants/data";
+import { expenseCategories, transactionTypes } from "@/constants/data";
 import ImageUpload from "@/components/ImageUpload";
 import useFetchData from "@/hooks/useFetchData";
 import { orderBy, where } from "firebase/firestore";
@@ -91,19 +91,24 @@ const TransactionModal = () => {
 
   const onSubmit = async () => {
     const {type, amount, description, category, date, walletId, image} = transaction;
-    if(!walletId ||!date || !amount || !category ){
-      Alert.alert("Transaction", "Please fill all the fields");
+    // Category is only required for expense transactions
+    if(!walletId ||!date || !amount || (type === "expense" && !category)){
+      Alert.alert("Transaction", "Please fill all the required fields");
       return ;
     }
-    let transactionData : TransactionType = {
+    // Build transaction data - only include category for expense transactions
+    let transactionData : any = {
       type,
       amount,
       description,
-      category,
       date,
       walletId,
       image : image ? image:  null,
       uid: user?.uid
+    };
+    // Only add category field for expense transactions (Firestore doesn't allow undefined)
+    if (type === "expense" && category) {
+      transactionData.category = category;
     }
     console.log('Transaction data:' , transactionData);
     if(oldTransaction?.id) transactionData.id = oldTransaction.id;
@@ -185,7 +190,8 @@ const TransactionModal = () => {
                 setTransaction({ 
                   ...transaction, 
                   type: item.value,
-                  category: "" // Reset category when type changes
+                  // Clear category when switching to income, keep it for expense
+                  category: item.value === "income" ? "" : transaction.category
                 });
               }}
             />
@@ -216,31 +222,6 @@ const TransactionModal = () => {
               }}
             />
           </View>
-          {/* income category */}
-          {transaction.type === "income" && (
-            <View style={styles.inputContainer}>
-              <Typo color={colors.neutral200} size={16}> Income Category</Typo>
-              <Dropdown
-                style={styles.dropdownContainer}
-                activeColor={colors.neutral700}
-                placeholderStyle={styles.dropdonwPlceholder}
-                selectedTextStyle={styles.dropdownSelectedText}
-                iconStyle={styles.dropdonwIcon}
-                data={Object.values(incomeCategories)}
-                maxHeight={300}
-                labelField="label"
-                valueField="value"
-                itemTextStyle={styles.dropdonwItemText}
-                itemContainerStyle={styles.dropdonwItemContainer}
-                containerStyle={styles.dropdownListContainer}
-                placeholder={"Select category"}
-                value={transaction.category}
-                onChange={(item) => {
-                  setTransaction({ ...transaction, category: item.value });
-                }}
-              />
-            </View>
-          )}
           {/* expense category */}
           {transaction.type === "expense" && (
             <View style={styles.inputContainer}>

@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacingY._10
+    marginBottom: spacingY._20
   },
   wallets:{ 
      flex: 1,
@@ -92,11 +92,11 @@ const styles = StyleSheet.create({
      borderTopRightRadius: radius._30,
      borderTopLeftRadius: radius._30,
      padding: spacingX._20,
-     paddingTop: spacingX._25,
+     paddingTop: spacingX._35,
 },
   
   listStyle:{
     paddingVertical: spacingY._25,
-    paddingTop: spacingY._15
+    paddingTop: spacingY._25
   }
 })

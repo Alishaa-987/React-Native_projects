@@ -53,7 +53,10 @@ const TransactionList = ({
             />
           )}
         />
+
       </View>
+
+      
       {
         !loading && data.length == 0 && (
             <Typo size={15} color={colors.neutral400} 
@@ -77,8 +80,8 @@ const TransactionItem = ({
   index,
   handleClick,
 }: TransactionItemProps) => {
-    let category = item?.type == "income"? incomeCategory : expenseCategories[item.category!] ;
-    const IconComponent = category.icon;
+    let category = item?.type == "income"? incomeCategory : (expenseCategories[item.category!] || expenseCategories.others) ;
+    const IconComponent = category?.icon;
     const date = (item?.date as Timestamp)?.toDate()?.toLocaleDateString("en-GB", {
         day: "numeric",
         month: "short"
@@ -93,7 +96,7 @@ const TransactionItem = ({
         <TouchableOpacity style={styles.row} onPress={()=>{
             handleClick(item)
         }}>
-            <View style={[styles.icon , {backgroundColor: category.bgColor}]} >
+            <View style={[styles.icon , {backgroundColor: category?.bgColor}]} >
                 {IconComponent && (
                     <IconComponent
                     size={verticalScale(25)}
@@ -103,7 +106,7 @@ const TransactionItem = ({
                 )}
             </View>
             <View style={styles.categoryDes}>
-                <Typo size={17}>{category.label}</Typo>
+                <Typo size={17}>{category?.label}</Typo>
                 <Typo size={12} color={colors.neutral400} textProps={{numberOfLines: 1}}>
                     {item.description}
                 </Typo>
