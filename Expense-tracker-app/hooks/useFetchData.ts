@@ -1,6 +1,6 @@
 import { StyleSheet} from 'react-native'
 import  { useEffect, useState } from 'react'
-import { collection, doc, onSnapshot, query, QueryConstraint } from 'firebase/firestore'
+import { collection,  onSnapshot, query, QueryConstraint } from 'firebase/firestore'
 import { fireStore } from '@/config/firebase'
 
 const useFetchData =<T> (

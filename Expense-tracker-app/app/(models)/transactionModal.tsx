@@ -4,7 +4,7 @@ import ModalWrapper from "@/components/ModalWrapper";
 import Typo from "@/components/Typo";
 import { colors, radius, spacingX, spacingY } from "@/constants/theme";
 import { scale, verticalScale } from "@/utills/styling";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Platform,
@@ -21,7 +21,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { deleteWallet } from "@/services/walletService";
 import * as Icons from "phosphor-react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { expenseCategories, transactionTypes } from "@/constants/data";
+import { expenseCategories, transactionTypes, incomeCategories } from "@/constants/data";
 import ImageUpload from "@/components/ImageUpload";
 import useFetchData from "@/hooks/useFetchData";
 import { orderBy, where } from "firebase/firestore";
@@ -30,6 +30,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import Input from "@/components/input";
 import { TransactionType } from "@/types";
+import { createOrUpdateTransaction, deleteTransaction } from "@/services/transactionService";
 
 const TransactionModal = () => {
   const { user } = useAuth();
@@ -53,8 +54,18 @@ const TransactionModal = () => {
     where("uid", "==", user?.uid),
     orderBy("created", "desc"),
   ]);
-
-  const oldTransaction: { name: string; id: string; image: string } =
+  type paramType = {
+    id: string,
+    type: string,
+    amount: string,
+    category?: string,
+    date: string,
+    description?: string,
+    image?: any;
+    uid?: string,
+    walletId: string, 
+  }
+  const oldTransaction: paramType=
     useLocalSearchParams();
 
   const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
@@ -64,22 +75,26 @@ const TransactionModal = () => {
 
     setShowDatePicker(false);
   };
-  // useEffect(() => {
-  //   if (oldTransaction?.id) {
-  //     setTransaction({
-  //       name: oldTransaction?.name,
-  //       image: oldTransaction?.image,
-  //     });
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (oldTransaction?.id) {
+      setTransaction({
+      type: oldTransaction?.type,
+      amount: Number(oldTransaction.amount),
+      description: oldTransaction.description || "",
+      category: oldTransaction.category || "",
+      date: new Date(oldTransaction.date),
+      walletId: oldTransaction.walletId,
+      image: oldTransaction?.image,
+      });
+    }
+  }, []);
 
   const onSubmit = async () => {
     const {type, amount, description, category, date, walletId, image} = transaction;
-    if(!walletId ||!date || !amount || (type === 'expense' && !category) ){
+    if(!walletId ||!date || !amount || !category ){
       Alert.alert("Transaction", "Please fill all the fields");
       return ;
     }
-    console.log('good to go ')
     let transactionData : TransactionType = {
       type,
       amount,
@@ -87,28 +102,38 @@ const TransactionModal = () => {
       category,
       date,
       walletId,
-      image,
+      image : image ? image:  null,
       uid: user?.uid
     }
     console.log('Transaction data:' , transactionData);
+    if(oldTransaction?.id) transactionData.id = oldTransaction.id;
+    setLoading(true);
+    const res = await createOrUpdateTransaction(transactionData);
+    setLoading(false);
+
+    if(res && typeof res === 'object' && 'success' in res && (res as any).success){
+      router.back();
+    }else if(res && typeof res === 'object' && 'msg' in res){
+      Alert.alert("Transaction", (res as any).msg)
+    }
   };
 
   const onDelete = async () => {
     if (!oldTransaction?.id) return;
     setLoading(true);
-    const res = await deleteWallet(oldTransaction?.id);
+    const res = await deleteTransaction(oldTransaction?.id , oldTransaction.walletId);
     setLoading(false);
     if (res.success) {
       router.back();
     } else {
-      Alert.alert("Wallet", res.msg);
+      Alert.alert("Transaction", res.msg);
     }
   };
 
   const showDeleteAlert = () => {
     Alert.alert(
       "Confirm",
-      " Are you sure you want to do this?\n This action will remove all the trasaction realted to the wallet",
+      " Are you sure you want to do delete this transaction?",
 
       [
         {
@@ -157,7 +182,11 @@ const TransactionModal = () => {
               // placeholder={!isFocus ? "Select item" : "..."}
               value={transaction.type}
               onChange={(item) => {
-                setTransaction({ ...transaction, type: item.value });
+                setTransaction({ 
+                  ...transaction, 
+                  type: item.value,
+                  category: "" // Reset category when type changes
+                });
               }}
             />
           </View>
@@ -187,6 +216,31 @@ const TransactionModal = () => {
               }}
             />
           </View>
+          {/* income category */}
+          {transaction.type === "income" && (
+            <View style={styles.inputContainer}>
+              <Typo color={colors.neutral200} size={16}> Income Category</Typo>
+              <Dropdown
+                style={styles.dropdownContainer}
+                activeColor={colors.neutral700}
+                placeholderStyle={styles.dropdonwPlceholder}
+                selectedTextStyle={styles.dropdownSelectedText}
+                iconStyle={styles.dropdonwIcon}
+                data={Object.values(incomeCategories)}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                itemTextStyle={styles.dropdonwItemText}
+                itemContainerStyle={styles.dropdonwItemContainer}
+                containerStyle={styles.dropdownListContainer}
+                placeholder={"Select category"}
+                value={transaction.category}
+                onChange={(item) => {
+                  setTransaction({ ...transaction, category: item.value });
+                }}
+              />
+            </View>
+          )}
           {/* expense category */}
           {transaction.type === "expense" && (
             <View style={styles.inputContainer}>
@@ -293,10 +347,11 @@ const TransactionModal = () => {
 
 
           <View style={styles.inputContainer}>
- <View style={styles.flexRow}>
+            <View style={styles.flexRow}>
               <Typo color={colors.neutral200} size={16}> Receipt</Typo>
               <Typo color={colors.neutral500} size={14}> (Optional)</Typo>
-            </View>            {/* drodonw here */}
+            </View>
+            {/* image upload here */}
             <ImageUpload
               file={transaction.image}
               onClear={() => setTransaction({ ...transaction, image: null })}

@@ -72,6 +72,47 @@ export const expenseCategories: ExpenseCategoriesType= {
 
 };
 
+export const incomeCategories: ExpenseCategoriesType= {
+
+    salary:{
+        label: "Salary",
+        value:"salary",
+        icon: Icons.CurrencyDollarSimple,
+        bgColor: '#16a34a'
+    },
+    freelance:{
+        label: "Freelance",
+        value: 'freelance',
+        icon: Icons.Briefcase,
+        bgColor: '#059669'
+    },
+    investment:{
+        label: "Investment",
+        value: "investment",
+        icon: Icons.ChartLine,
+        bgColor: "#0d9488",
+    },
+    business:{
+        label:"Business",
+        value: "business",
+        icon: Icons.Storefront,
+        bgColor: '#0891b2'
+    },
+    gifts:{
+        label:"Gifts",
+        value:"gifts",
+        icon: Icons.Gift,
+        bgColor: "#7c3aed"
+    },
+    other_income:{
+        label: "Other Income",
+        value: "other_income",
+        icon: Icons.CurrencyDollar,
+        bgColor: "#65a30d"
+    },
+
+};
+
 export const incomeCategory: CategoryType = {
     label: "Income",
     value: "income",
