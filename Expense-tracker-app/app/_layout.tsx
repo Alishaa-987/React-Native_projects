@@ -6,22 +6,34 @@ import { StyleSheet } from "react-native";
 const StackLayout = () => {
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      {/* Splash Screen */}
+      <Stack.Screen name="index" />
+      
+      {/* Auth Screens */}
+      <Stack.Screen name="(auth)/welcome" />
+      <Stack.Screen name="(auth)/login" />
+      <Stack.Screen name="(auth)/register" />
+      
+      {/* Main Tabs */}
+      <Stack.Screen name="(tabs)" />
+      
+      {/* Modal Screens */}
       <Stack.Screen
-        name="(modals)/profileModal"
+        name="(models)/profileModal"
         options={{
           presentation: "modal",
         }}
       />
 
       <Stack.Screen
-        name="(modals)/walletModal"
+        name="(models)/walletModal"
         options={{
           presentation: "modal",
         }}
       />
 
       <Stack.Screen
-        name="(modals)/TransactionModal"
+        name="(models)/transactionModal"
         options={{
           presentation: "modal",
         }}

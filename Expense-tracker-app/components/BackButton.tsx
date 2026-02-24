@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { BackButtonProps } from '@/types'
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { CaretLeft } from 'phosphor-react-native';
 import { verticalScale } from '@/utills/styling';
 import { colors, radius } from '@/constants/theme';
@@ -12,8 +12,20 @@ const BackButton = (
     iconSize = 26
     }:BackButtonProps) => {
    const router = useRouter();
+   const navigation = useNavigation();
+   
+   const handleBack = () => {
+     // Only go back if there's history to go back to
+     if (navigation.canGoBack()) {
+       router.back();
+     } else {
+       // If no history, go to welcome screen
+       router.replace('/(auth)/welcome');
+     }
+   };
+   
   return (
-    <TouchableOpacity onPress={()=> router.back()} style={[styles.button, style]}>
+    <TouchableOpacity onPress={handleBack} style={[styles.button, style]}>
         <CaretLeft
         size={verticalScale(iconSize)}
         color={colors.white}

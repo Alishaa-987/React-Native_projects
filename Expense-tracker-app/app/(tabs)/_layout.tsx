@@ -1,4 +1,3 @@
-import { StyleSheet } from 'react-native'
 import React from 'react'
 import { Tabs } from 'expo-router'
 import * as Icons from 'phosphor-react-native'
@@ -15,7 +14,9 @@ const _layout = () => {
         borderTopColor: colors.neutral700,
         borderTopWidth: 1,
       }
-    }}>
+    }}
+    initialRouteName="index"
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -60,5 +61,3 @@ const _layout = () => {
 }
 
 export default _layout
-
-const styles = StyleSheet.create({})

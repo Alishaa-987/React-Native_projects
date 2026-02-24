@@ -15,8 +15,11 @@ const Welcome = () => {
     <ScreenWrapper>
       {/* Top Section: Sign In */}
       <View style={Styles.topSection}>
-        <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-          <Typo fontWeight={"500"} size={18} color={"white"}>
+        <TouchableOpacity 
+          onPress={() => router.push("/(auth)/login")}
+          style={{padding: 10}}
+        >
+          <Typo fontWeight={"600"} size={18} color={"white"}>
             Sign in
           </Typo>
         </TouchableOpacity>
@@ -71,10 +74,10 @@ const Welcome = () => {
             .duration(1800)
             .stiffness(60)
             .damping(22)}
-          style={{ alignItems: "center" }}
+          style={{ alignItems: "center", width: '100%' }}
         >
-          <Button onPress={()=> router.push('/(auth)/register')}>
-            <Typo size={22} color={colors.neutral900} fontWeight={"600"}>
+          <Button onPress={()=> router.push('/(auth)/register')} style={{width: '100%', height: verticalScale(65)}}>
+            <Typo size={24} color={colors.neutral900} fontWeight={"700"}>
               Get Started
             </Typo>
           </Button>
